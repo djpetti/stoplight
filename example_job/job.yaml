@@ -1,0 +1,18 @@
+# Name of the job.
+Name: Example Job
+# Description.
+Description: This is an example job.
+
+# The base docker container to use.
+Container: djpetti/rpinets-theano
+
+# Section for specifying expected resource usage.
+ResourceUsage:
+  # Expected CPU usage requirements. Here, 100 means 100% of one core.
+  - CpuUsage: 100
+  # Expected RAM usage requirements, in bytes.
+  - RamUsage: 100000000
+  # Expected GPU usage, in percent.
+  - GpuUsage: 100
+  # Expected VRAM usage, in bytes.
+  - VramUsage: 2000000000
