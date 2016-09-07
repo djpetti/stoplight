@@ -3,7 +3,6 @@ import os
 import subprocess
 import sys
 
-from job import ConfigurationError
 import util
 
 
@@ -48,13 +47,14 @@ class Container:
     local_exe_path = os.path.join(self.__job_dir, exe)
     logger.debug("Running '%s' in container '%s'.", exe, self.__container)
     if not os.path.exists(local_exe_path):
-      raise ConfigurationError("'%s' not found, or not executable." % \
-                               (local_exe_path))
+      raise util.ConfigurationError("'%s' not found, or not executable." % \
+                                    (local_exe_path))
 
     # Make the docker command.
     exe_path = os.path.join("job_files", exe)
     command = [self.__docker, "run", "--rm", "--net=host", "-v",
                "%s:/job_files" % (self.__job_dir), self.__container, exe_path]
+    logger.debug("Running command: %s" % (command))
     # Run the command.
     self.__process = subprocess.Popen(command)
 

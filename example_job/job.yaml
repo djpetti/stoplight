@@ -4,7 +4,7 @@ Name: Example Job
 Description: This is an example job.
 
 # The base docker container to use.
-Container: djpetti/rpinets-theano
+Container: nvidia/cuda
 
 # Section for specifying expected resource usage.
 ResourceUsage:

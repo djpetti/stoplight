@@ -1,6 +1,5 @@
 import logging
 import os
-import shutil
 
 import yaml
 try:
@@ -10,15 +9,11 @@ except ImportError:
   # Otherwise, fall back on Python version.
   from yaml import Loader
 
+from util import ConfigurationError
 import docker
 
 
 logger = logging.getLogger(__name__)
-
-
-class ConfigurationError(Exception):
-  """ Custom exception for malformed config files. """
-  pass
 
 
 class Job:
@@ -85,40 +80,15 @@ class Job:
         self.Vram = 0
 
 
-  def __init__(self, job_directory, job_storage):
+  def __init__(self, job_directory):
     """
     Args:
       job_directory: The path to the job directory.
       job_storage: The path to the location that job data will be copied to. """
     self.__job_directory = job_directory
-    self.__job_storage = job_storage
 
-    # Copy job to the permanent directory.
-    self.__copy_job_data()
     # Interpret the job configuration.
     self.__interpret_configuration()
-
-  def __del__(self):
-    # Clean up the copied data when we're done.
-    logger.debug("Removing job directory: %s" % (self.__job_directory))
-    shutil.rmtree(self.__job_directory)
-
-  def __copy_job_data(self):
-    """ Copies a job from the native directory to job_storage. """
-    if not os.path.exists(self.__job_directory):
-      raise ConfigurationError("I tried my best, but I couldn't find %s." \
-                               " I'm really sorry, old chap." % \
-                               (self.__job_directory))
-
-    # Copy it.
-    dir_name = os.path.basename(os.path.normpath(self.__job_directory))
-    dest_dir = os.path.join(self.__job_storage, dir_name)
-    logger.debug("Copying job data from '%s' to '%s'." % (self.__job_directory,
-                                                          dest_dir))
-    shutil.copytree(self.__job_directory, dest_dir)
-
-    # Set the job directory location to the copied version.
-    self.__job_directory = dest_dir
 
   def __interpret_configuration(self):
     def missing_param(name):
@@ -154,7 +124,7 @@ class Job:
     # Handle the ResourceUsage section.
     self.__resource_usage = Job.ResourceUsage(config_data.get("ResourceUsage"))
 
-  def start_job(self):
+  def start(self):
     """ Starts the job running. """
     logger.info("Starting job: %s (%s)", self.__name, self.__description)
 

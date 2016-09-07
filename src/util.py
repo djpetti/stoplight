@@ -5,7 +5,12 @@ import subprocess
 logger = logging.getLogger()
 
 
-def get_path(self, tool):
+class ConfigurationError(Exception):
+  """ Custom exception for malformed config files. """
+  pass
+
+
+def get_path(tool):
     """ Gets the path of a particular tool.
     Args:
       tool: The tool to find the path of.
