@@ -1,11 +1,15 @@
 #!/usr/bin/python3
 
 
+from multiprocessing import Queue
+from queue import Empty
 import logging
 import time
 
 
 from manager import Manager
+
+import server
 
 
 """ Main file for the stoplight daemon. """
@@ -35,9 +39,23 @@ def main():
   # Initialize logging.
   init_logging("stoplightd.log")
 
+  # Start the server.
+  server_queue = Queue()
+  server.start(server_queue)
+
   # Create and run the manager.
   manager = Manager()
   while True:
+    # Check for new jobs and add them.
+    try:
+      command = server_queue.get(block=False)
+      if command["type"] == "add_job":
+        # Add the job.
+        manager.add_job(command["job_dir"])
+
+    except Empty:
+      pass
+
     manager.update()
     time.sleep(5)
 
