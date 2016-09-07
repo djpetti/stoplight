@@ -93,7 +93,16 @@ class Manager:
     finished_job = False
     to_remove = []
     for job in self.__running_jobs:
-      if job.is_finished():
+      completed = False
+      try:
+        completed = job.is_finished()
+      except RuntimeError:
+        # The job failed.
+        logger.error("Job %s execution failed!" % (job.get_name()))
+        completed = True
+
+      if completed:
+        # Remove the finished job.
         to_remove.append(job)
         finished_job = True
 
