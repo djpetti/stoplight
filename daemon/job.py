@@ -83,12 +83,22 @@ class Job:
   def __init__(self, job_directory):
     """
     Args:
-      job_directory: The path to the job directory.
-      job_storage: The path to the location that job data will be copied to. """
+      job_directory: The path to the job directory. """
     self.__job_directory = job_directory
+
+    # Open files for output.
+    out_file_path = os.path.join(self.__job_directory, "job.out")
+    err_file_path = os.path.join(self.__job_directory, "job.err")
+    self.__out_file = open(out_file_path, "a")
+    self.__err_file = open(err_file_path, "a")
 
     # Interpret the job configuration.
     self.__interpret_configuration()
+
+  def __del__(self):
+    # Close output files.
+    self.__out_file.close()
+    self.__err_file.close()
 
   def __interpret_configuration(self):
     def missing_param(name):
@@ -151,3 +161,18 @@ class Job:
     Returns:
       The resource usage for this job. """
     return self.__resource_usage
+
+  def write_job_output(self):
+    """ Writes the stdout and stderr streams from the job to files in the job
+    directory called job.out and job.err respectively. """
+    new_output = self.__container.get_output()
+    new_errors = self.__container.get_error()
+
+    if new_output:
+      self.__out_file.write(new_output)
+      # Flush so we can tail -f it in realtime.
+      self.__out_file.flush()
+
+    if new_errors:
+      self.__err_file.write(new_errors)
+      self.__err_file.flush()

@@ -2,11 +2,10 @@ from collections import deque
 from multiprocessing import cpu_count
 import logging
 import os
-import shutil
 
 import psutil
 
-import job
+from job import Job
 import nvidia
 
 
@@ -76,7 +75,7 @@ class Manager:
     logger.info("Adding new job from '%s'." % (job_directory))
 
     try:
-      new_job = job.Job(job_directory)
+      new_job = Job(job_directory)
     except job.ConfigurationError as error:
       # Bad configuration. Don't add the job.
       logger.error("Failed to add job: %s" % str(error))
@@ -93,6 +92,9 @@ class Manager:
     finished_job = False
     to_remove = []
     for job in self.__running_jobs:
+      # Write any new output.
+      job.write_job_output()
+
       completed = False
       try:
         completed = job.is_finished()
@@ -192,4 +194,3 @@ class Manager:
     logger.debug("Resource usage: CPU: %d, RAM: %d, GPU: %d, VRAM: %d" % \
                  (self.__cpu_usage, self.__ram_usage, self.__gpu_usage,
                   self.__vram_usage))
-

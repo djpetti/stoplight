@@ -1,3 +1,4 @@
+from fcntl import fcntl, F_GETFL, F_SETFL
 import logging
 import os
 import subprocess
@@ -56,7 +57,13 @@ class Container:
                "%s:/job_files" % (self.__job_dir), self.__container, exe_path]
     logger.debug("Running command: %s" % (command))
     # Run the command.
-    self.__process = subprocess.Popen(command)
+    self.__process = subprocess.Popen(command, stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE)
+    # Use non-blocking IO.
+    flags = fcntl(self.__process.stdout, F_GETFL)
+    fcntl(self.__process.stdout, F_SETFL, flags | os.O_NONBLOCK)
+    flags = fcntl(self.__process.stderr, F_GETFL)
+    fcntl(self.__process.stderr, F_SETFL, flags | os.O_NONBLOCK)
 
   def is_finished(self):
     """
@@ -73,3 +80,31 @@ class Container:
 
     logger.info("Job from %s finished successfully." % (self.__job_dir))
     return True
+
+  def get_output(self):
+    """
+    Returns:
+      The most recent output from stdout. """
+    output = ""
+
+    while True:
+      read = self.__process.stdout.read(1024)
+      if not read:
+        break
+      output += read.decode("utf-8")
+
+    return output
+
+  def get_error(self):
+    """
+    Returns:
+      The most recent output from stderr. """
+    output = ""
+
+    while True:
+      read = self.__process.stderr.read(1024)
+      if not read:
+        break
+      output += read.decode("utf-8")
+
+    return output
