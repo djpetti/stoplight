@@ -16,15 +16,17 @@ logger = logging.getLogger(__name__)
 class Container:
   """ Represents a running container. """
 
-  def __init__(self, container, job_dir, nvidia=True):
+  def __init__(self, container, job_dir, nvidia=True, volumes={}):
     """
     Args:
       container: The container to run.
       job_dir: The directory that will be mounted under /job_files in the
       container.
-      nvidia: If true, it will use nvidia-docker instead of normal docker. """
+      nvidia: If true, it will use nvidia-docker instead of normal docker.
+      volumes: Additional volumes to mount in the container. """
     self.__container = container
     self.__job_dir = os.path.abspath(job_dir)
+    self.__volumes = volumes
 
     self.__process = None
 
@@ -51,10 +53,19 @@ class Container:
       raise util.ConfigurationError("'%s' not found, or not executable." % \
                                     (local_exe_path))
 
+    # Create command part for additional volumes.
+    volume_args = []
+    for pair in self.__volumes:
+       volume_args.append("-v")
+       host_path, container_path = [(k, v) for k, v in pair.items()][0]
+       volume_args.append("%s:%s" % (host_path, container_path))
+
     # Make the docker command.
     exe_path = os.path.join("job_files", exe)
     command = [self.__docker, "run", "--rm", "--net=host", "-v",
-               "%s:/job_files" % (self.__job_dir), self.__container, exe_path]
+               "%s:/job_files" % (self.__job_dir)]
+    command.extend(volume_args)
+    command.extend([self.__container, exe_path])
     logger.debug("Running command: %s" % (command))
     # Run the command.
     self.__process = subprocess.Popen(command, stdout=subprocess.PIPE,

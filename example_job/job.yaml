@@ -6,6 +6,11 @@ Description: This is an example job.
 # The base docker container to use.
 Container: nvidia/cuda
 
+# Additional volumes to mount. Each entry is the directory on the host system
+# mapped to the mount point in the container.
+Volumes:
+  - /training_data: /training_data
+
 # Section for specifying expected resource usage.
 ResourceUsage:
   # Expected CPU usage requirements. Here, 100 means 100% of one core.

@@ -131,6 +131,9 @@ class Job:
     if not self.__container_name:
       missing_param("Container")
 
+    # Optional volumes.
+    self.__volumes = config_data.get("Volumes")
+
     # Handle the ResourceUsage section.
     self.__resource_usage = Job.ResourceUsage(config_data.get("ResourceUsage"))
 
@@ -140,7 +143,8 @@ class Job:
 
     # First, create the docker container to run inside.
     self.__container = docker.Container(self.__container_name,
-                                        self.__job_directory)
+                                        self.__job_directory,
+                                        volumes=self.__volumes)
     # Run the script to start the job.
     self.__container.run_exe("run_job.sh")
 
