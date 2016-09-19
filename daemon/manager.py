@@ -5,7 +5,7 @@ import os
 
 import psutil
 
-from job import Job
+from job import ConfigurationError, Job
 import nvidia
 
 
@@ -76,7 +76,7 @@ class Manager:
 
     try:
       new_job = Job(job_directory)
-    except job.ConfigurationError as error:
+    except ConfigurationError as error:
       # Bad configuration. Don't add the job.
       logger.error("Failed to add job: %s" % str(error))
       return
