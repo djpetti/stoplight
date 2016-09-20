@@ -91,7 +91,12 @@ class Container:
       read = self.__process.stdout.read(1024)
       if not read:
         break
-      output += read.decode("utf-8")
+      try:
+        output += read.decode("utf-8")
+      except UnicodeDecodeError:
+        # Occasionally, we get things we can't understand, so we can just ignore
+        # that.
+        logger.warning("Job %s: got bad unicode." % (self.__job_dir))
 
     return output
 
@@ -105,6 +110,11 @@ class Container:
       read = self.__process.stderr.read(1024)
       if not read:
         break
-      output += read.decode("utf-8")
+      try:
+        output += read.decode("utf-8")
+      except UnicodeDecodeError:
+        # Occasionally, we get things we can't understand, so we can just ignore
+        # that.
+        logger.warning("Job %s: got bad unicode." % (self.__job_dir))
 
     return output
