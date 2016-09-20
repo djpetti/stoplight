@@ -64,7 +64,7 @@ class Manager:
     # GPU requirement will be in percentage form already.
     gpu = usage.Gpu
     # VRAM is in bytes, so we can calculate the fraction again.
-    vram = usage.Vram / self.__total_vram
+    vram = usage.Vram / self.__total_vram * 100
 
     return cpu, ram, gpu, vram
 
