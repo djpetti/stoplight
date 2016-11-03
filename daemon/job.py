@@ -132,7 +132,7 @@ class Job:
       missing_param("Container")
 
     # Optional volumes.
-    self.__volumes = config_data.get("Volumes")
+    self.__volumes = config_data.get("Volumes", {})
 
     # Handle the ResourceUsage section.
     self.__resource_usage = Job.ResourceUsage(config_data.get("ResourceUsage"))
