@@ -51,7 +51,7 @@ def main():
       command = server_queue.get(block=False)
       if command["type"] == "add_job":
         # Add the job.
-        manager.add_job(command["job_dir"])
+        manager.add_job(command["job"])
 
     except Empty:
       pass

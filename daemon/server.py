@@ -1,8 +1,11 @@
 from multiprocessing import Process
+import json
 import logging
 import urllib
 
-from flask import abort, Flask, g, request
+from flask import abort, Flask, g, jsonify, request
+
+import job
 
 
 """ A minimal server that will implement the REST API that we use to communicate
@@ -29,11 +32,22 @@ def _add_job():
     abort(400)
 
   job_dir = urllib.parse.unquote_plus(job_dir)
-  # Actually add the job.
-  _queue.put({"type": "add_job", "job_dir": job_dir})
 
-  # No content to show.
-  return ("", 204)
+  # Interpret the job configuration.
+  message = {"status": "okay"}
+  try:
+    new_job = job.Job(job_dir)
+
+    # Actually add the job.
+    _queue.put({"type": "add_job", "job": new_job})
+  except job.ConfigurationError as error:
+    # Bad configuration. Return an error to the user.
+    logger.error("Failed to add job: %s" % str(error))
+    message = {"status": "error", "details": str(error)}
+
+  response = jsonify(message)
+  response.status_code = 200
+  return response
 
 
 def _run_server(queue):

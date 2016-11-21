@@ -89,16 +89,23 @@ class Job:
     # Open files for output.
     out_file_path = os.path.join(self.__job_directory, "job.out")
     err_file_path = os.path.join(self.__job_directory, "job.err")
-    self.__out_file = open(out_file_path, "a")
-    self.__err_file = open(err_file_path, "a")
+    self.__out_file = None
+    self.__err_file = None
 
     # Interpret the job configuration.
     self.__interpret_configuration()
 
   def __del__(self):
     # Close output files.
-    self.__out_file.close()
-    self.__err_file.close()
+    if self.__out_file:
+      self.__out_file.close()
+    if self.__err_file:
+      self.__err_file.close()
+
+  def __str__(self):
+    """ Returns:
+      The job's name. """
+    return self.__name
 
   def __interpret_configuration(self):
     def missing_param(name):
@@ -140,6 +147,9 @@ class Job:
   def start(self):
     """ Starts the job running. """
     logger.info("Starting job: %s (%s)", self.__name, self.__description)
+
+    self.__out_file = open(out_file_path, "a")
+    self.__err_file = open(err_file_path, "a")
 
     # First, create the docker container to run inside.
     self.__container = docker.Container(self.__container_name,

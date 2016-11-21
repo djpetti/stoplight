@@ -68,23 +68,15 @@ class Manager:
 
     return cpu, ram, gpu, vram
 
-  def add_job(self, job_directory):
+  def add_job(self, job):
     """ Adds a new job to the queue.
     Args:
-      job_directory: The directory containing the job. """
-    logger.info("Adding new job from '%s'." % (job_directory))
+      job: The Job to add. """
+    logger.info("Adding new job '%s'." % (job))
 
-    try:
-      new_job = Job(job_directory)
-    except job.ConfigurationError as error:
-      # Bad configuration. Don't add the job.
-      logger.error("Failed to add job: %s" % str(error))
-      return
-
-    self.__pending_jobs.appendleft(new_job)
-
+    self.__pending_jobs.appendleft(job)
     # We haven't checked whether this job is runnable yet.
-    self.__maybe_runnable.appendleft(new_job)
+    self.__maybe_runnable.appendleft(job)
 
   def update(self):
     """ Updates the state of the manager. Should be called periodically. """

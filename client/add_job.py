@@ -4,7 +4,9 @@
 from urllib.request import Request, urlopen
 from urllib.parse import quote_plus, urlencode
 import argparse
+import json
 import os
+import sys
 
 
 def _add_job(job_directory):
@@ -19,9 +21,20 @@ def _add_job(job_directory):
   values = {"job_dir": job_directory}
 
   data = urlencode(values)
-  data = data.encode("ascii")
+  data = data.encode("utf8")
   request = Request(url, data)
   response = urlopen(request)
+
+  # See what the server told us.
+  decoded = response.read().decode("utf8")
+  message = json.loads(decoded)
+  if message["status"] == "okay":
+    # We're all good.
+    print("Job added successfully.")
+    return 0
+
+  print("Got error status from daemon: %s" % (message["details"]))
+  return 1
 
 def main():
   # Parse arguments.
@@ -31,7 +44,7 @@ def main():
 
   args = parser.parse_args()
 
-  _add_job(args.job_directory)
+  sys.exit(_add_job(args.job_directory))
 
 
 if __name__ == "__main__":
