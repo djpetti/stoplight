@@ -9,6 +9,7 @@ import time
 
 from manager import Manager
 
+import messaging
 import server
 
 
@@ -41,7 +42,8 @@ def main():
 
   # Start the server.
   server_queue = Queue()
-  server.start(server_queue)
+  status_box = messaging.Mailbox()
+  server.start(server_queue, status_box)
 
   # Create and run the manager.
   manager = Manager()
@@ -57,6 +59,10 @@ def main():
       pass
 
     manager.update()
+
+    # Set the status after the update.
+    status_box.set(manager.get_status())
+
     time.sleep(5)
 
 

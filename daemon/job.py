@@ -170,6 +170,12 @@ class Job:
       The name of the job. """
     return self.__name
 
+  def get_description(self):
+    """
+    Returns:
+      A description of the job. """
+    return self.__description
+
   def get_resource_usage(self):
     """
     Returns:

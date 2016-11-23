@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 _app = Flask(__name__)
 # Queue we use to send data to the daemon
 _queue = None
+# Mailbox containing status from the Daemon.
+_status_box = None
 
 
 @_app.route("/add_job", methods=["POST"])
@@ -49,21 +51,46 @@ def _add_job():
   response.status_code = 200
   return response
 
+@_app.route("/status")
+def _get_status():
+  """ Gets a status report from the daemon. """
+  logger.debug("Got HTTP request: %s" % (request.url))
 
-def _run_server(queue):
+  # Read the latest status.
+  message = _status_box.peek()
+  message["status"] = "okay"
+  if not message:
+    # No status was set yet.
+    logger.error("Failed to get status: no status yet.")
+    message = {"status": "error", "details": "No status available yet."}
+
+  response = jsonify(message)
+  response.status_code = 200
+  return response
+
+
+def _run_server(queue, status_box):
   """ Runs the flask server. Meant to be called in a different process.
   Args:
-    queue: The queue to send requests for the main daemon on. """
+    queue: The queue to send requests for the main daemon on.
+    status_box: A Mailbox that contains current status data from the daemon.
+                This is so that the server can have quick access to this
+                information. """
   global _queue
+  global _status_box
   _queue = queue
+  _status_box = status_box
 
   _app.run()
 
-def start(queue):
+def start(queue, status_box):
   """ Starts the server running.
   Args:
-    queue: The queue to send requests for the main daemon on. """
+    queue: The queue to send requests for the main daemon on.
+    status_box: A Mailbox that contains current status data from the daemon.
+                This is so that the server can have quick access to this
+                information. """
   logger.info("Starting new server...")
 
-  server = Process(target=_run_server, args=(queue,))
+  server = Process(target=_run_server, args=(queue, status_box))
   server.start()

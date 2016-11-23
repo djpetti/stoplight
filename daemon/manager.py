@@ -78,6 +78,29 @@ class Manager:
     # We haven't checked whether this job is runnable yet.
     self.__maybe_runnable.appendleft(job)
 
+  def get_status(self):
+    """ Gets a brief report on the status of the manager.
+    Returns:
+      The report, which is stored as a dict. """
+    def get_job_info(job_set):
+      """ Gets info about some collection of jobs.
+      Returns:
+        A list of job name and description pairs. """
+      job_info = []
+      for job in job_set:
+        name = job.get_name()
+        description = job.get_description()
+        job_info.append((name, description))
+
+      return job_info
+
+    status = {}
+    # Get info about the running and pending jobs.
+    status["running"] = get_job_info(self.__running_jobs)
+    status["pending"] = get_job_info(self.__pending_jobs)
+
+    return status
+
   def update(self):
     """ Updates the state of the manager. Should be called periodically. """
     # Remove any jobs that are now finished.
