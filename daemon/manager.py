@@ -27,6 +27,10 @@ class Manager:
     # Jobs that were started from maybe_runnable. This is so we can easily
     # remove them from pending_jobs the next time we go through the queue.
     self.__already_started = set()
+    # Contains only jobs that are pending. This is so we can get a quick
+    # snapshop of running jobs without having to go through both __pending_jobs
+    # and __maybe_runnable.
+    self.__all_pending = set()
 
     # TODO(danielp): Support for multiple GPUs.
     self.__gpu = nvidia.Gpu(0)
@@ -64,7 +68,7 @@ class Manager:
     # GPU requirement will be in percentage form already.
     gpu = usage.Gpu
     # VRAM is in bytes, so we can calculate the fraction again.
-    vram = usage.Vram / self.__total_vram
+    vram = usage.Vram / self.__total_vram * 100
 
     return cpu, ram, gpu, vram
 
@@ -75,6 +79,7 @@ class Manager:
     logger.info("Adding new job '%s'." % (job))
 
     self.__pending_jobs.appendleft(job)
+    self.__all_pending.add(job)
     # We haven't checked whether this job is runnable yet.
     self.__maybe_runnable.appendleft(job)
 
@@ -95,9 +100,12 @@ class Manager:
       return job_info
 
     status = {}
+
+    # Don't include jobs
+
     # Get info about the running and pending jobs.
     status["running"] = get_job_info(self.__running_jobs)
-    status["pending"] = get_job_info(self.__pending_jobs)
+    status["pending"] = get_job_info(self.__all_pending)
 
     return status
 
@@ -184,6 +192,7 @@ class Manager:
         vram_remaining -= vram
 
         self.__running_jobs.add(job)
+        self.__all_pending.remove(job)
 
         if pending_queue == self.__maybe_runnable:
           # Indicate that we've already started this job, so we should ignore

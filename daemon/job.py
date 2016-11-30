@@ -86,9 +86,6 @@ class Job:
       job_directory: The path to the job directory. """
     self.__job_directory = job_directory
 
-    # Open files for output.
-    out_file_path = os.path.join(self.__job_directory, "job.out")
-    err_file_path = os.path.join(self.__job_directory, "job.err")
     self.__out_file = None
     self.__err_file = None
 
@@ -148,6 +145,9 @@ class Job:
     """ Starts the job running. """
     logger.info("Starting job: %s (%s)", self.__name, self.__description)
 
+    # Open files for output.
+    out_file_path = os.path.join(self.__job_directory, "job.out")
+    err_file_path = os.path.join(self.__job_directory, "job.err")
     self.__out_file = open(out_file_path, "a")
     self.__err_file = open(err_file_path, "a")
 
